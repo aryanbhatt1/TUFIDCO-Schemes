@@ -87,25 +87,18 @@ class GalleryAdmin(admin.ModelAdmin):
     image_preview.short_description = 'Image Preview'
     image_preview.allow_tags = True
 
-
 # Sanction Form
 
-
 admin.site.register(About)
-
-
 class SchemeAdmin(ImportExportModelAdmin, admin.AdminSite):
     model = Scheme
 
     list_display = [
         'Scheme'
     ]
-
-
 admin.site.register(Scheme, SchemeAdmin)
 
 admin.site.register(SchemeSanctionPdf)
-
 
 @admin.register(Scheme_Faq_Questions)
 class SchemeFAQQuestion(admin.ModelAdmin):
@@ -118,11 +111,9 @@ class SchemeFAQQuestion(admin.ModelAdmin):
         'question'
     ]
 
-
 @admin.register(Scheme_Page)
 class SchemePageAdmin(admin.ModelAdmin):
     pass
-
 
 class AgencyTypeAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     model = AgencyType
@@ -135,9 +126,7 @@ class AgencyTypeAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'id'
     ]
 
-
 admin.site.register(AgencyType, AgencyTypeAdmin)
-
 
 class AgencyNameAdmin(ImportExportModelAdmin):
     resource_class = AgencyNameResource
@@ -155,9 +144,7 @@ class AgencyNameAdmin(ImportExportModelAdmin):
         'AgencyName'
     ]
 
-
 admin.site.register(AgencyName, AgencyNameAdmin)
-
 
 class DistrictAdmin(ImportExportModelAdmin):
     resource_class = DistrictResource
@@ -173,7 +160,6 @@ class DistrictAdmin(ImportExportModelAdmin):
     search_fields = [
         'District'
     ]
-
 
 admin.site.register(District, DistrictAdmin)
 
@@ -193,11 +179,7 @@ class RegionAdmin(ImportExportModelAdmin):
         'Region'
     ]
 
-
 admin.site.register(Region, RegionAdmin)
-
-
-
 
 
 class MasterSanctionFormAdmin(ImportExportModelAdmin, admin.AdminSite):
@@ -238,30 +220,16 @@ class MasterSanctionFormAdmin(ImportExportModelAdmin, admin.AdminSite):
         'AgencyName__AgencyName',
         'District__District'
     )
-
-
-
-
 admin.site.register(MasterSanctionForm, MasterSanctionFormAdmin)
-
-
-
 
 
 """
     Agency admin
 """
 
-
-
-
 @admin.register(LatestReports)
 class LatestReportAdmin(admin.ModelAdmin):
     pass
-
-
-
-
 
 class Round(Func):
     function = "ROUND"
@@ -271,9 +239,6 @@ class Round(Func):
 admin.site.register(ULBReleaseRequest)
 
 admin.site.register(PageCounter)
-
-
-
 
 class SRPMasterSanctionFormAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_class = SRPMasterSanctionResource
@@ -303,6 +268,3 @@ class SRPMasterSanctionFormAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 
 admin.site.register(SRPMasterSanctionForm, SRPMasterSanctionFormAdmin)
-
-
-

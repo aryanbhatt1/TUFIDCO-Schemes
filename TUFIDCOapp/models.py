@@ -231,16 +231,6 @@ class MasterSanctionForm(models.Model):
 
 # Agency Form
 
-
-
-
-
-
-
-
-
-
-
 class ULBReleaseRequest(models.Model):
     scheme = models.ForeignKey(Scheme, on_delete=models.CASCADE, null=True)
     name_of_form = models.CharField("Name of form", max_length=50, null=True)

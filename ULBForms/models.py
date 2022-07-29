@@ -1,3 +1,5 @@
+from re import T
+from statistics import mode
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.datetime_safe import datetime
@@ -8,7 +10,8 @@ from mapbox_location_field.admin import MapAdmin
 from django.contrib import admin
 from Accounts.models import ReleaseRequestModel
 from django_cryptography.fields import encrypt
-
+from CTP.models import TownPanchayatDetails
+from DMA.models import MunicipalityDetails
 # Create your models here.
 
 
@@ -17,12 +20,14 @@ class AgencyBankDetails(models.Model):
     beneficiary_name = models.CharField("Name of the ULB", max_length=90, null=True)
     bank_name = models.CharField("Name of the Bank", max_length=90, null=True)
     branch = models.CharField("Branch", max_length=90, null=True)
-    account_number = encrypt(models.CharField("Account Number", max_length=90, null=True))
-    IFSC_code = encrypt(models.CharField("IFSC Code", max_length=20, null=True))
-    passbookupload = encrypt(models.FileField("Passbook Front Page Photo", upload_to='passbook/', null=True,
-                                      help_text='Please attach a clear scanned copy front page of the Bank passbook'))
+    account_number = models.CharField("Account Number", max_length=90, null=True)
+    IFSC_code = models.CharField("IFSC Code", max_length=20, null=True)
+    passbookupload = models.FileField("Passbook Front Page Photo", upload_to='passbook/', null=True,
+                                      help_text='Please attach a clear scanned copy front page of the Bank passbook')
     date_and_time = models.DateTimeField(default=datetime.now, null=True)
     ULBType = models.CharField('ULB Type', max_length=40, blank=True, null=True)
+    district = models.CharField('District', max_length=40, blank=True, null=True)
+
 
     @property
     def passbook_preview(self):
@@ -32,6 +37,14 @@ class AgencyBankDetails(models.Model):
 
     def __str__(self):
         return str(self.user.first_name)
+
+    def save(self, **kwargs):
+        if self.user.groups.filter(name__in=["Municipality", ]).exists():
+            self.district = MunicipalityDetails.objects.values_list('district', flat=True).filter(user=self.user)
+        elif self.user.groups.filter(name__in=["Town Panchayat", ]).exists():
+            self.district  = TownPanchayatDetails.objects.values_list('district', flat=True).filter(user=self.user)
+        super(AgencyBankDetails, self).save(**kwargs)
+
 
     class Meta:
         verbose_name = "Bank Detail"
@@ -114,13 +127,13 @@ class AgencyProgressModel(models.Model):
     
     nc_status = models.TextField("If Others Specify", null=True, blank=True)
     nc_choices  = models.CharField('If To be Commenced',max_length=30, blank=True, choices=not_commenced_choices(), null=True, help_text="Select/Tick any one of the about if status is TO BE COMMENCED")
-    Expenditure = models.DecimalField("Expenditure (in lakhs)", max_digits=5, decimal_places=2, blank=True, null=True,
+    Expenditure = models.DecimalField("Expenditure (in lakhs)", max_digits=10, decimal_places=2, blank=True, null=True,
                                       help_text='Payment made to Contractor')
-    FundRelease = models.DecimalField("Fund Release by TUFIDCO (in lakhs)", max_digits=5, decimal_places=2,
+    FundRelease = models.DecimalField("Fund Release by TUFIDCO (in lakhs)", max_digits=10, decimal_places=2,
                                       blank=True, null=True,
                                       help_text="Agency has to send a hard copy of the release request along with "
                                                 "photos,etc in the prescribed format")
-    valueofworkdone = models.DecimalField("Value of Work done (in lakhs)", decimal_places=2, max_digits=6, blank=True,
+    valueofworkdone = models.DecimalField("Value of Work done (in lakhs)", decimal_places=2, max_digits=10, blank=True,
                                           default=0.0, null=True)
     percentageofworkdone = models.DecimalField("Percentage of work done", decimal_places=2, max_digits=12, blank=True,
                                                default=0.0, null=True)
@@ -156,31 +169,16 @@ class AgencyProgressModel(models.Model):
             Project_ID=self.Project_ID)
         self.ULBShare = MasterSanctionForm.objects.values_list('ULBShare', flat=True).filter(
             Project_ID=self.Project_ID)
-        try:
-            amount1 = ReleaseRequestModel.objects.values_list('release1Amount', flat=True).filter(Project_ID=self.Project_ID)[0]
-        except IndexError:
-            amount1 = 0.0
+        amount_list = [
+            ReleaseRequestModel.objects.values_list('release1Amount', flat=True).filter(Project_ID=self.Project_ID)[0],
+            ReleaseRequestModel.objects.values_list('release2Amount', flat=True).filter(Project_ID=self.Project_ID)[0],
+            ReleaseRequestModel.objects.values_list('release3Amount', flat=True).filter(Project_ID=self.Project_ID)[0],
+            ReleaseRequestModel.objects.values_list('release4Amount', flat=True).filter(Project_ID=self.Project_ID)[0],
+            ReleaseRequestModel.objects.values_list('release5Amount', flat=True).filter(Project_ID=self.Project_ID)[0]
+        ]
+        self.total_release = sum(list(filter(None, amount_list)))
+        print("Total Release", self.total_release)
         
-        try:
-            amount2 = ReleaseRequestModel.objects.values_list('release2Amount', flat=True).filter(Project_ID=self.Project_ID)[0]
-        except IndexError:
-            amount2 = 0.0
-        try:
-            amount3 = ReleaseRequestModel.objects.values_list('release3Amount', flat=True).filter(Project_ID=self.Project_ID)[0]
-        except IndexError:
-            amount3=0.0
-        try:
-            amount4 = ReleaseRequestModel.objects.values_list('release4Amount', flat=True).filter(Project_ID=self.Project_ID)[0]
-        except IndexError:
-            amount4=0.0
-        try:
-            amount5 = ReleaseRequestModel.objects.values_list('release5Amount', flat=True).filter(Project_ID=self.Project_ID)[0]
-        except IndexError:
-            amount5=0.0
-
-        self.total_release = float(amount1)+float(amount2)+float(amount3)+float(amount4)+float(amount5)
-
-
         if self.valueofworkdone is not None:
             self.percentageofworkdone = (
                 round(float(self.valueofworkdone) / float(self.ApprovedProjectCost[0]) * 100, 2))
@@ -221,10 +219,10 @@ class AgencySanctionModel(models.Model):
                                   null=True)
     tr_awarded = models.CharField("Tender Sanction Awarded", max_length=20, blank=True, choices=YN_CHOICES, null=True)
     wd_awarded = models.CharField("Work Order Awarded", max_length=20, blank=True, choices=YN_CHOICES, null=True)
-    work_awarded_amount1 = models.DecimalField("Work Order Amount", max_digits=6, decimal_places=2, blank=True,
+    work_awarded_amount1 = models.DecimalField("Work Order Amount", max_digits=10, decimal_places=2, blank=True,
                                                null=True,
                                                help_text="With Tax. (Add GST, LWF etc on the above basic cost)")
-    work_awarded_amount2 = models.DecimalField("Work Order Amount", max_digits=6, decimal_places=2, blank=True,
+    work_awarded_amount2 = models.DecimalField("Work Order Amount", max_digits=10, decimal_places=2, blank=True,
                                                null=True,
                                                help_text='Without Tax (Basic cost/agreed amount, without GST tax etc)')
     date_and_time = models.DateTimeField(default=datetime.now, null=True)
@@ -250,7 +248,7 @@ class AgencySanctionModel(models.Model):
         super(AgencySanctionModel, self).save(**kwargs)
 
     def __str__(self):
-        return '{} - {} - {}'.format(str(self.Scheme), str(self.user.first_name), str(self.Project_ID))
+        return '{} - {} - {}'.format(str(self.Scheme),str(self.user.first_name), str(self.Project_ID))
 
     class Meta:
         verbose_name = "Project Sanction Detail"

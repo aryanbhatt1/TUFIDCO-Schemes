@@ -1,5 +1,5 @@
 from django.db import models
-from ULBForms.models import AgencyProgressModel, AgencySanctionModel
+from ULBForms.models import AgencyProgressModel, AgencySanctionModel, AgencyBankDetails, ULBPanCard
 from TUFIDCOapp.models import *
 
 class ULBProgressIncompleted(AgencyProgressModel):
@@ -28,4 +28,17 @@ class SanctionNotEntered(MasterSanctionForm):
         proxy = True
         verbose_name = 'Sanction Detail Not Entered'
         verbose_name_plural = 'Sanction Details Not Entered'
-# Create your models here.
+
+
+class PanDetailsNotEntered(ULBPanCard):
+    class Meta:
+        proxy = True
+        verbose_name = 'PAN Detail Not Filled in'
+        verbose_name_plural = 'PAN Details Not Filld in'
+
+
+class BankDetailsNotEntered(AgencyBankDetails):
+    class Meta:
+        proxy = True
+        verbose_name = 'Bank Detail Not Filled in'
+        verbose_name_plural = 'Bank Details Not Filled in'

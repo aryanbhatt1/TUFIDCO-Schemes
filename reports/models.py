@@ -3,11 +3,7 @@ from django.db import models
 from ULBForms.models import AgencyProgressModel, AgencySanctionModel
 from TUFIDCOapp.models import *
 
-
 # Create your models here.
-
-
-
 
 class SRPAbstract(SRPMasterSanctionForm):
     class Meta:
@@ -45,3 +41,9 @@ class SingaraChennaiPhysicalandFinancialReport(MasterSanctionForm):
         proxy=True
         verbose_name = "Singara Chennai 2.0 Physical & Financial Progress Report"
         verbose_name_plural = "Singara Chennai 2.0 Physical & Financial Progress Report"
+
+class ULBReleaseLedger(MasterSanctionForm):
+    class Meta:
+        proxy=True
+        verbose_name = "ULB Release Ledger"
+        verbose_name_plural = "ULB Release Ledgers"

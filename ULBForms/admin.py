@@ -4,7 +4,8 @@ from .models import *
 from .forms import *
 from import_export.admin import ImportExportModelAdmin
 from .resources import *
-
+from CTP.models import TownPanchayatDetails
+from DMA.models import MunicipalityDetails
 
 # Register your models here.
 @admin.register(ProjectDetails)
@@ -41,6 +42,7 @@ class AgencyBankDetailsAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'branch',
         'account_number',
         'IFSC_code',
+        'district',
         'date_and_time'
     ]
     ordering = [
@@ -53,9 +55,8 @@ class AgencyBankDetailsAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'user__first_name',
         'beneficiary_name',
         'bank_name',
+        'district',
         'branch',
-        'account_number',
-        'IFSC_code'
     ]
 
     def save_model(self, request, obj, form, change):
@@ -63,10 +64,13 @@ class AgencyBankDetailsAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         obj.date_and_time = datetime.now()
         if request.user.groups.filter(name__in=["Municipality", ]).exists():
             obj.ULBType = "Municipality"
+
         if request.user.groups.filter(name__in=["Town Panchayat", ]).exists():
             obj.ULBType = "Town Panchayat"
+
         if request.user.groups.filter(name__in=["Corporation", ]).exists():
             obj.ULBType = "Corporation"
+        
         obj.save()
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
@@ -113,7 +117,6 @@ class ULBPANDetailsAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     search_fields = [
         'user__first_name',
-        'PANno',
         'name',
     ]
     ordering = [
@@ -175,7 +178,6 @@ class AgencyProgressAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'status',
         'Scheme',
         'Sector',
-
     ]
     list_display = [
         'Project_ID',
@@ -187,7 +189,6 @@ class AgencyProgressAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'status',
         'percentageofworkdone',
         'date_and_time',
-
     ]
 
     search_fields = [
@@ -214,7 +215,8 @@ class AgencyProgressAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         Form = super().get_form(request, obj=None, **kwargs)
         return functools.partial(Form, request)
-
+    def has_add_permission(self, request, *args, **kwargs):
+        return request.user.groups.filter(name__in=["Agency"]).exists()
     
 
 
@@ -259,6 +261,9 @@ class AgencySanctionAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             obj.ProjectName = MasterSanctionForm.objects.values_list('ProjectName', flat=True).filter(
                 Project_ID=form.cleaned_data['Project_ID'])
             obj.save()
+
+    def has_add_permission(self, request, *args, **kwargs):
+        return request.user.groups.filter(name__in=["Agency"]).exists()
 
     def get_queryset(self, request):
         qs = super(AgencySanctionAdmin, self).get_queryset(request)

@@ -153,12 +153,25 @@ class ReleaseRequestAdmin(admin.ModelAdmin):
                     For ACS / CMD
                 """%(form.cleaned_data['AgencyName'], form.cleaned_data['AgencyType'], district, amount, form.cleaned_data['Sector'], form.cleaned_data['Project_ID'])
             email = []  
-            if form.cleaned_data['AgencyType'] == "Municipality":
-                email_detail = MunicipalityDetails.objects.values_list('email_id1', flat=True).filter(user__first_name=form.cleaned_data['AgencyName'])[0]
-                email.append(email_detail)
-            else:
-                email_detail = TownPanchayatDetails.objects.values_list('email', flat=True).filter(user__first_name=form.cleaned_data['AgencyName'])[0]
-                email.append(email_detail)
+           
+            try:
+                if str(form.cleaned_data['AgencyType']) == "Municipality":
+                    email_detail = MunicipalityDetails.objects.values_list('email_id1', flat=True).filter(user__first_name=form.cleaned_data['AgencyName'])[0]
+                    email.append(email_detail)
+          
+                if str(form.cleaned_data['AgencyType']) == "Town Panchayat":
+                    email_detail = TownPanchayatDetails.objects.values_list('email', flat=True).filter(user__first_name=form.cleaned_data['AgencyName'])[0]
+                    email.append(email_detail)
+            except IndexError:
+                subject=str(form.cleaned_data['AgencyType'])+" Details Not Filled - "+str(form.cleaned_data['AgencyName'])
+                message = """
+                        Hello,<br><br>
+                        %s %s, %s District did not filled %s details.<br>
+                        <br>
+                        Please ask them to do so.<br><br>
+                        Thank You.
+                        """%(form.cleaned_data['AgencyName'], form.cleaned_data['AgencyType'], district, form.cleaned_data['AgencyType'])
+                email.append('tufidcoschemes@gmail.com')    
             mail = EmailMessage(subject, message, str(EMAIL_HOST_USER), email)  
             mail.content_subtype = "html"
             mail.send()      

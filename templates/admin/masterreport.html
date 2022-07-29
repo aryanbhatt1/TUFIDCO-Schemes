@@ -63,7 +63,7 @@
           <th class="border-grey" style="text-align:right;" >S.No</th>
           <th class="border-grey"> Name of the Sector</th>
           <th class="border-grey" style="text-align:center;" colspan="5">Financial Progress (Rs.in Cr)</th>
-          <th class="border-grey" style="text-align:center;" colspan="8">Physical Progress</th>
+          <th class="border-grey" style="text-align:center;" colspan="9">Physical Progress</th>
         </tr>
       <tr class="border-grey">
         <th class="border-grey">(C1)</th>
@@ -103,7 +103,7 @@
         <td class="border-grey" style="text-align:right;"> &#8377 {{ row.ULBShare.ULBShare }}</td>
         <td class="border-grey" style="text-align:right;"> &#8377 {{ row.Total }}</td>
         <td class="border-grey" style="text-align:right;"> &#8377 {{ row.workorder.sum }}</td>
-          <td class="border-grey" style="text-align:right;"> &#8377 {{ row.amountspend.sum }}</td>
+        <td class="border-grey" style="text-align:right;"> &#8377 {{ row.amountspend.sum }}</td>
         <td class="border-grey" style="text-align:right;"> {{ row.Approved }}</td>
         <td class="border-grey" style="text-align:right;"> {{ row.Taken }}</td>
         <td class="border-grey" style="text-align:right;"> {{ row.Completed }}</td>
@@ -115,9 +115,8 @@
         <td class="border-grey" style="text-align:right;">{{ row.WO_Awarded }}</td>
       </tr>
      {%endfor%}
-      <tr class="border-grey" style="font-weight:bold; border-top:2px solid #DDDDDD;">
-        <td class="border-grey" ></td>
-        <td class="border-grey" style="text-align:right;">Total </td>
+      <tr class="border-grey" style="font-weight:bold; border-top:2px solid #DDDDDD;">        
+        <td class="border-grey" colspan="2" style="text-align:right;">Total </td>
         <td class="border-grey" style="text-align:right;">&#8377 {{ SchemeShare.SchemeShare }} </td>
         <td class="border-grey" style="text-align:right;">&#8377  {{ ULBShare.ULBShare }} </td>
         <td class="border-grey" style="text-align:right;">&#8377 {{ ProjectCost.ProjectCost }} </td>
@@ -165,7 +164,7 @@
      <script>
         function ExportToExcel(type, fn, dl) {
             var elt = document.getElementById('results');
-            var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+            var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" , raw:true});
             return dl ?
                 XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) :
                 XLSX.writeFile(wb, fn || ('GOReport.' + (type || 'xlsx')));
